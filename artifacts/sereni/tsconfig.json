@@ -1,0 +1,17 @@
+{
+  "include": ["src/App.tsx", "src/main.tsx"],
+  "exclude": ["node_modules", "build", "dist"],
+  "compilerOptions": {
+    "noEmit": true,
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "jsx": "react-jsx",
+    "lib": ["esnext", "dom", "dom.iterable"],
+    "moduleResolution": "bundler",
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "strict": true,
+    "types": ["node", "vite/client"],
+    "allowSyntheticDefaultImports": true
+  }
+}

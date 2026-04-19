@@ -1,0 +1,13 @@
+{
+  "name": "sereniai-root",
+  "version": "1.0.0",
+  "license": "MIT",
+  "scripts": {
+    "install:app": "npm install --prefix artifacts/sereni",
+    "dev": "npm run dev --prefix artifacts/sereni",
+    "dev:netlify": "netlify dev",
+    "build": "npm run build --prefix artifacts/sereni",
+    "preview": "npm run preview --prefix artifacts/sereni"
+  },
+  "private": true
+}

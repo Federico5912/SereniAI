@@ -1,0 +1,907 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: Sereni API - Emotional support platform
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: profile
+    description: User profile operations
+  - name: assessment
+    description: Self-assessment operations
+  - name: resources
+    description: Resource library operations
+  - name: contact
+    description: Contact and help request forms
+  - name: admin
+    description: Admin panel operations
+  - name: openai
+    description: OpenAI AI chat operations
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /profile:
+    get:
+      operationId: getProfile
+      tags: [profile]
+      summary: Get current user profile
+      responses:
+        "200":
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Profile"
+        "404":
+          description: Profile not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      operationId: updateProfile
+      tags: [profile]
+      summary: Create or update user profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProfileBody"
+      responses:
+        "200":
+          description: Updated profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Profile"
+
+  /assessment:
+    post:
+      operationId: submitAssessment
+      tags: [assessment]
+      summary: Submit a new self-assessment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubmitAssessmentBody"
+      responses:
+        "201":
+          description: Assessment result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Assessment"
+  /assessment/latest:
+    get:
+      operationId: getLatestAssessment
+      tags: [assessment]
+      summary: Get the most recent assessment for the current user
+      responses:
+        "200":
+          description: Latest assessment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Assessment"
+        "404":
+          description: No assessment found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /assessment/history:
+    get:
+      operationId: getAssessmentHistory
+      tags: [assessment]
+      summary: Get assessment history for the current user
+      responses:
+        "200":
+          description: List of assessments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Assessment"
+
+  /resources:
+    get:
+      operationId: getResources
+      tags: [resources]
+      summary: List all active resources
+      parameters:
+        - name: category
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: locale
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of resources
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Resource"
+  /resources/{slug}:
+    get:
+      operationId: getResource
+      tags: [resources]
+      summary: Get a specific resource by slug
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Resource detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Resource"
+        "404":
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /contact:
+    post:
+      operationId: submitContactForm
+      tags: [contact]
+      summary: Submit a contact form message
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubmitContactFormBody"
+      responses:
+        "201":
+          description: Contact form submitted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContactForm"
+
+  /help-request:
+    post:
+      operationId: submitHelpRequest
+      tags: [contact]
+      summary: Submit a help request (professional referral)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubmitHelpRequestBody"
+      responses:
+        "201":
+          description: Help request submitted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HelpRequest"
+
+  /admin/stats:
+    get:
+      operationId: getAdminStats
+      tags: [admin]
+      summary: Get admin dashboard statistics
+      responses:
+        "200":
+          description: Admin stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminStats"
+  /admin/users:
+    get:
+      operationId: adminListUsers
+      tags: [admin]
+      summary: List all users
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of users
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUsersResponse"
+  /admin/users/{userId}:
+    put:
+      operationId: adminUpdateUser
+      tags: [admin]
+      summary: Update a user (block/unblock, set role)
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminUpdateUserBody"
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUser"
+  /admin/contact-forms:
+    get:
+      operationId: adminListContactForms
+      tags: [admin]
+      summary: List all contact form submissions
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of contact forms
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ContactForm"
+  /admin/help-requests:
+    get:
+      operationId: adminListHelpRequests
+      tags: [admin]
+      summary: List all help requests
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of help requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/HelpRequest"
+  /admin/help-requests/{id}:
+    put:
+      operationId: adminUpdateHelpRequest
+      tags: [admin]
+      summary: Update help request status
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminUpdateHelpRequestBody"
+      responses:
+        "200":
+          description: Updated help request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HelpRequest"
+  /admin/resources:
+    get:
+      operationId: adminListResources
+      tags: [admin]
+      summary: List all resources (admin view)
+      responses:
+        "200":
+          description: List of resources
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Resource"
+    post:
+      operationId: adminCreateResource
+      tags: [admin]
+      summary: Create a new resource
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminCreateResourceBody"
+      responses:
+        "201":
+          description: Created resource
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Resource"
+  /admin/resources/{id}:
+    put:
+      operationId: adminUpdateResource
+      tags: [admin]
+      summary: Update a resource
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminCreateResourceBody"
+      responses:
+        "200":
+          description: Updated resource
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Resource"
+    delete:
+      operationId: adminDeleteResource
+      tags: [admin]
+      summary: Delete a resource
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /openai/conversations:
+    get:
+      operationId: listOpenaiConversations
+      tags: [openai]
+      summary: List all conversations
+      responses:
+        "200":
+          description: List of conversations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OpenaiConversation"
+    post:
+      operationId: createOpenaiConversation
+      tags: [openai]
+      summary: Create a new conversation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOpenaiConversationBody"
+      responses:
+        "201":
+          description: Created conversation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OpenaiConversation"
+  /openai/conversations/{id}:
+    get:
+      operationId: getOpenaiConversation
+      tags: [openai]
+      summary: Get conversation with messages
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Conversation with messages
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OpenaiConversationWithMessages"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OpenaiError"
+    delete:
+      operationId: deleteOpenaiConversation
+      tags: [openai]
+      summary: Delete a conversation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OpenaiError"
+  /openai/conversations/{id}/messages:
+    get:
+      operationId: listOpenaiMessages
+      tags: [openai]
+      summary: List messages in a conversation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OpenaiMessage"
+    post:
+      operationId: sendOpenaiMessage
+      tags: [openai]
+      summary: Send a text message and receive a streaming text response
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendOpenaiMessageBody"
+      responses:
+        "200":
+          description: SSE stream of assistant text chunks
+          content:
+            text/event-stream: {}
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    Profile:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: string
+        name:
+          type: ["string", "null"]
+        ageRange:
+          type: ["string", "null"]
+        country:
+          type: ["string", "null"]
+        languageCode:
+          type: string
+        theme:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - userId
+        - languageCode
+        - createdAt
+
+    UpdateProfileBody:
+      type: object
+      properties:
+        name:
+          type: string
+        ageRange:
+          type: string
+        country:
+          type: string
+        languageCode:
+          type: string
+        theme:
+          type: string
+
+    Assessment:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: string
+        score:
+          type: integer
+        resultCategory:
+          type: string
+          enum: [low, medium, high]
+        answers:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - userId
+        - score
+        - resultCategory
+        - createdAt
+
+    SubmitAssessmentBody:
+      type: object
+      properties:
+        answers:
+          type: array
+          items:
+            type: integer
+      required:
+        - answers
+
+    Resource:
+      type: object
+      properties:
+        id:
+          type: integer
+        slug:
+          type: string
+        title:
+          type: string
+        content:
+          type: string
+        category:
+          type: string
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - slug
+        - title
+        - content
+        - category
+        - isActive
+        - createdAt
+
+    AdminCreateResourceBody:
+      type: object
+      properties:
+        slug:
+          type: string
+        title:
+          type: string
+        content:
+          type: string
+        category:
+          type: string
+        isActive:
+          type: boolean
+      required:
+        - slug
+        - title
+        - content
+        - category
+
+    ContactForm:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: ["string", "null"]
+        email:
+          type: string
+        message:
+          type: string
+        status:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - email
+        - message
+        - status
+        - createdAt
+
+    SubmitContactFormBody:
+      type: object
+      properties:
+        email:
+          type: string
+        message:
+          type: string
+      required:
+        - email
+        - message
+
+    HelpRequest:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: ["string", "null"]
+        email:
+          type: string
+        urgencyLevel:
+          type: string
+          enum: [low, medium, high]
+        message:
+          type: string
+        status:
+          type: string
+          enum: [new, contacted, closed]
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - email
+        - urgencyLevel
+        - message
+        - status
+        - createdAt
+
+    SubmitHelpRequestBody:
+      type: object
+      properties:
+        email:
+          type: string
+        urgencyLevel:
+          type: string
+          enum: [low, medium, high]
+        message:
+          type: string
+      required:
+        - email
+        - urgencyLevel
+        - message
+
+    AdminStats:
+      type: object
+      properties:
+        totalUsers:
+          type: integer
+        totalAssessments:
+          type: integer
+        totalChatConversations:
+          type: integer
+        totalHelpRequests:
+          type: integer
+        newHelpRequests:
+          type: integer
+        activationRate:
+          type: number
+        assessmentCompletionRate:
+          type: number
+        helpRequestRate:
+          type: number
+      required:
+        - totalUsers
+        - totalAssessments
+        - totalChatConversations
+        - totalHelpRequests
+        - newHelpRequests
+        - activationRate
+        - assessmentCompletionRate
+        - helpRequestRate
+
+    AdminUser:
+      type: object
+      properties:
+        userId:
+          type: string
+        email:
+          type: string
+        name:
+          type: ["string", "null"]
+        role:
+          type: string
+        isBlocked:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        lastAssessmentCategory:
+          type: ["string", "null"]
+      required:
+        - userId
+        - email
+        - role
+        - isBlocked
+        - createdAt
+
+    AdminUsersResponse:
+      type: object
+      properties:
+        users:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminUser"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+      required:
+        - users
+        - total
+        - page
+        - limit
+
+    AdminUpdateUserBody:
+      type: object
+      properties:
+        isBlocked:
+          type: boolean
+        role:
+          type: string
+          enum: [user, admin]
+
+    AdminUpdateHelpRequestBody:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [new, contacted, closed]
+      required:
+        - status
+
+    OpenaiConversation:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - title
+        - createdAt
+
+    OpenaiMessage:
+      type: object
+      properties:
+        id:
+          type: integer
+        conversationId:
+          type: integer
+        role:
+          type: string
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - conversationId
+        - role
+        - content
+        - createdAt
+
+    CreateOpenaiConversationBody:
+      type: object
+      properties:
+        title:
+          type: string
+      required:
+        - title
+
+    SendOpenaiMessageBody:
+      type: object
+      properties:
+        content:
+          type: string
+      required:
+        - content
+
+    OpenaiConversationWithMessages:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/OpenaiMessage"
+      required:
+        - id
+        - title
+        - createdAt
+        - messages
+
+    OpenaiError:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error

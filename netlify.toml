@@ -1,0 +1,11 @@
+[build]
+  command = "npm run build --prefix artifacts/sereni"
+  publish = "artifacts/sereni/dist"
+
+[functions]
+  directory = "artifacts/sereni/netlify/functions"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

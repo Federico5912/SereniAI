@@ -1,0 +1,20 @@
+{
+	"geolocation": {
+		"data": {
+			"city": "Montevideo",
+			"country": {
+				"code": "UY",
+				"name": "Uruguay"
+			},
+			"subdivision": {
+				"code": "MO",
+				"name": "Montevideo Department"
+			},
+			"timezone": "America/Montevideo",
+			"latitude": -34.9055,
+			"longitude": -56.1944,
+			"postalCode": "11100"
+		},
+		"timestamp": 1776565364228
+	}
+}
